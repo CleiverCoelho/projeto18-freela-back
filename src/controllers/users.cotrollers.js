@@ -1,26 +1,21 @@
 import { db } from "../database/database.connection.js"
-import bcrypt from 'bcrypt';
-import {v4 as uuid} from "uuid";
 
 
-export async function signUpUser(req, res) {
-    const {name, email, password} = req.body;
-    const encriptedPassword = bcrypt.hashSync(password, 10);
+export async function getProfilePosts(req, res) {
+    // AINDA FALTA REDIRECIONAR O USUARIO
+    const userId = res.locals.userId;
+
     try {
-        await db.query(`INSERT INTO users (name, email, password) 
-            VALUES ($1, $2, $3);`, [name, email, encriptedPassword]);
-        res.sendStatus(201);
-    } catch (err) {
-        res.status(500).send(err.message)
-    }
-}
-
-export async function signInUser(req, res) {
-    try {
-        const token = uuid();
-        await db.query(`INSERT INTO sessions ("userId", token) VALUES ($1, $2)`,
-        [res.locals.userId, token])
-        res.status(200).send({token})
+        const {rows: posts} = await db.query(`SELECT posts.description, pictures.img_url AS "imgUrl", 
+        posts.likes, posts."createdAt"   
+        FROM posts
+        JOIN users ON users.id=posts."userId"
+        JOIN pictures ON pictures."userId"=posts."userId"
+        WHERE posts."userId"=$1
+        `, [userId])
+        
+        // console.log(response)
+        res.send(posts).status(200);
     } catch (err) {
         res.status(500).send(err.message)
     }
