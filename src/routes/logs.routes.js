@@ -1,9 +1,9 @@
 import { Router } from "express"
 
 import validateSchema from "../middlewares/validateSchema.middleware.js"
-import { signUpSchema, signInSchema } from "../schemas/users.schemas.js"
-import { signUpUser, signInUser } from "../controllers/users.cotrollers.js"
-import { validateSignUpEmail, validateSignIn, validateUserHeader } from "../middlewares/users.middleware.js"
+import { signUpSchema, signInSchema } from "../schemas/logs.schemas.js"
+import { signUpUser, signInUser } from "../controllers/logs.controllers.js"
+import { validateSignUpEmail, validateSignIn } from "../middlewares/logs.middlewares.js"
 
 const logsRouter = Router()
 

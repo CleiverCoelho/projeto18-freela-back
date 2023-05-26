@@ -3,11 +3,11 @@ import bcrypt from 'bcrypt';
 import {v4 as uuid} from "uuid";
 
 export async function signUpUser(req, res) {
-    const {name, email, password} = req.body;
+    const {name, email, password, biography} = req.body;
     const encriptedPassword = bcrypt.hashSync(password, 10);
     try {
-        await db.query(`INSERT INTO users (name, email, password) 
-            VALUES ($1, $2, $3);`, [name, email, encriptedPassword]);
+        await db.query(`INSERT INTO users (name, email, password, biography) 
+            VALUES ($1, $2, $3, $4);`, [name, email, encriptedPassword, biography]);
         res.sendStatus(201);
     } catch (err) {
         res.status(500).send(err.message)
