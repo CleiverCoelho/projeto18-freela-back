@@ -1,7 +1,7 @@
 import { db } from "../database/database.connection.js"
 
 
-export async function getProfilePosts(req, res) {
+export async function getProfileData(req, res) {
     // AINDA FALTA REDIRECIONAR O USUARIO
     const userId = res.locals.userId;
 
@@ -9,13 +9,21 @@ export async function getProfilePosts(req, res) {
         const {rows: posts} = await db.query(`SELECT posts.description, pictures.img_url AS "imgUrl", 
         posts.likes, posts."createdAt"   
         FROM posts
-        JOIN users ON users.id=posts."userId"
-        JOIN pictures ON pictures."userId"=posts."userId"
-        WHERE posts."userId"=$1
-        `, [userId])
+        JOIN pictures ON pictures.id=posts."imgId"
+        `)
         
-        // console.log(response)
-        res.send(posts).status(200);
+        const {rows: profileInfo} = await db.query(`SELECT users.name, users.followers,
+            users.following, users.biography, 
+            pictures.img_url AS "profileImgUrl" 
+            FROM users
+            JOIN pictures ON pictures."userId"=users.id
+            WHERE users.id=$1
+            `, [userId])
+        const response = {
+            ...profileInfo[0],
+            posts: [...posts]
+        }
+        res.send(response).status(200);
     } catch (err) {
         res.status(500).send(err.message)
     }
@@ -73,13 +81,3 @@ export async function getUserData(req, res) {
     }
 }
 
-
-export async function getAllUsers(req, res) {
-    // AINDA FALTA REDIRECIONAR O USUARIO
-    try {
-        const users = await db.query(`SELECT * FROM users`)
-        res.status(204).send(users.rows[0]);
-    } catch (err) {
-        res.status(500).send(err.message)
-    }
-}
