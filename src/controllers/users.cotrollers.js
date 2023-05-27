@@ -21,6 +21,34 @@ export async function getProfilePosts(req, res) {
     }
 }
 
+export async function createNewPost(req, res) {
+    // AINDA FALTA REDIRECIONAR O USUARIO
+    const userId = res.locals.userId;
+    const imgUrl = res.locals.imgUrl;
+    const description = res.locals.description;
+
+    // é preciso adicionar a foto na table pictures pois
+    // o post precisa fazer refrencia a uma foto existente
+
+    try {
+        await db.query(`INSERT INTO pictures (img_url, "userId") 
+            VALUES ($1, $2) 
+        `, [imgUrl, userId])
+
+        const {rows : pictureCreated} = await db.query(`SELECT img_url, id FROM pictures 
+            WHERE "userId"=$1 ORDER BY id DESC`, [userId])
+        
+        const imgId = pictureCreated[0].id
+        await db.query(`INSERT INTO posts (description, "userId", "imgId") 
+            VALUES ($1, $2, $3)`, [description, userId, imgId])
+        
+        // console.log(response)
+        res.send({message: "post criado com sucesso"}).status(200);
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
 export async function getUserData(req, res) {
     // AINDA FALTA REDIRECIONAR O USUARIO
     const userId = res.locals.userId
@@ -54,33 +82,3 @@ export async function getAllUsers(req, res) {
         res.status(500).send(err.message)
     }
 }
-
-
-// export async function createCustomer(req, res) {
-//     const { name, phone, birthday, cpf } = req.body
-//     try {
-//         await db.query(`
-//             INSERT INTO customers (name, phone, birthday, cpf)
-//                 VALUES ($1, $2, $3, $4);
-//         `, [name, phone, birthday, cpf])
-//         res.sendStatus(201)
-//     } catch (err) {
-//         res.status(500).send(err.message)
-//     }
-// }
-
-// export async function updateCustomer(req, res) {
-//     const { id } = req.params
-//     const { name, phone, birthday, cpf } = req.body
-
-//     try {
-//         await db.query(`
-//             UPDATE customers 
-//                 SET name=$1, phone=$2, birthday=$3, cpf=$4
-//                 WHERE id=$5;
-//         `, [name, phone, birthday, cpf, id])
-//         res.sendStatus(200)
-//     } catch (err) {
-//         res.status(500).send(err.message)
-//     }
-// } 
