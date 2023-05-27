@@ -35,14 +35,15 @@ export async function createNewPost(req, res) {
             VALUES ($1, $2) 
         `, [imgUrl, userId])
 
+        // pega o id da ultima imagem adicionada na tabela
         const {rows : pictureCreated} = await db.query(`SELECT img_url, id FROM pictures 
             WHERE "userId"=$1 ORDER BY id DESC`, [userId])
         
+        // relaciona a imagem do post com a imagem criada em pictures
         const imgId = pictureCreated[0].id
         await db.query(`INSERT INTO posts (description, "userId", "imgId") 
             VALUES ($1, $2, $3)`, [description, userId, imgId])
         
-        // console.log(response)
         res.send({message: "post criado com sucesso"}).status(200);
     } catch (err) {
         res.status(500).send(err.message)
