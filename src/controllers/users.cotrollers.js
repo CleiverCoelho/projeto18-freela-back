@@ -20,6 +20,10 @@ export async function getProfileData(req, res) {
             JOIN pictures ON pictures."userId"=users.id
             WHERE users.id=$1
             `, [userId])
+        const {rows: teste} = await db.query(`SELECT * FROM users WHERE id=$1`, [userId])
+        console.log(teste)
+
+        console.log(profileInfo)
         const response = {
             ...profileInfo[0],
             posts: [...posts]
@@ -122,7 +126,7 @@ export async function createNewConnection(req, res) {
 
 export async function getUsers(req, res, next) {
     try {
-        const {rows: users} = await db.query(`SELECT * FROM users`)
+        const {rows: users} = await db.query(`SELECT * FROM pictures`)
         res.status(200).send(users)
     } catch (err) {
         res.status(500).send(err.message)
