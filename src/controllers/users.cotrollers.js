@@ -69,6 +69,28 @@ export async function getProfileVisitorData(req, res) {
     }
 }
 
+
+export async function searchUsers(req, res) {
+    // AINDA FALTA REDIRECIONAR O USUARIO
+    const userId = res.locals.userId;
+    const searchUserName = req.body.userName;
+
+    // é preciso adicionar a foto na table pictures pois
+    // o post precisa fazer refrencia a uma foto existente
+
+    try {
+        const {rows: sugestions} = await db.query(`SELECT users.name, users.biography, users.id, 
+            pictures.img_url AS "userImg" 
+            FROM users 
+            JOIN pictures ON pictures."userId"=users.id
+            WHERE name LIKE $1;`, [`${searchUserName}%`])
+        
+        res.send(sugestions).status(200);
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
 export async function createNewPost(req, res) {
     // AINDA FALTA REDIRECIONAR O USUARIO
     const userId = res.locals.userId;
@@ -156,7 +178,7 @@ export async function getFollowers(req, res, next) {
 
 export async function getUsers(req, res, next) {
     try {
-        const {rows: users} = await db.query(`SELECT * FROM users`)
+        const {rows: users} = await db.query(`UPDATE users SET following=2 WHERE id=3`)
         res.status(200).send(users)
     } catch (err) {
         res.status(500).send(err.message)

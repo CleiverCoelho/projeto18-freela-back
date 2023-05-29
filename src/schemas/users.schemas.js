@@ -7,3 +7,7 @@ export const newPostSchema = joi.object({
 
 })
 
+export const searchSchema = joi.object({
+    userName: joi.string().trim().required(),
+})
+
