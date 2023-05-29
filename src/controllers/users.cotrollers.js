@@ -10,7 +10,8 @@ export async function getProfileData(req, res) {
         posts.likes, posts."createdAt"   
         FROM posts
         JOIN pictures ON pictures.id=posts."imgId"
-        `)
+        WHERE posts."userId"=$1
+        `, [userId])
         
         const {rows: profileInfo} = await db.query(`SELECT users.name, users.followers,
             users.following, users.biography, 
@@ -23,6 +24,44 @@ export async function getProfileData(req, res) {
             ...profileInfo[0],
             posts: [...posts]
         }
+        res.send(response).status(200);
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
+export async function getProfileVisitorData(req, res) {
+    // AINDA FALTA REDIRECIONAR O USUARIO
+    const visitorId = req.params.id;
+    const userId = res.locals.userId
+
+    try {
+        const {rows: posts} = await db.query(`SELECT posts.description, pictures.img_url AS "imgUrl", 
+        posts.likes, posts."createdAt"   
+        FROM posts
+        JOIN pictures ON pictures.id=posts."imgId"
+        WHERE posts."userId"=$1
+        `, [visitorId])
+        
+        const {rows: profileInfo} = await db.query(`SELECT users.name, users.followers,
+            users.following, users.biography, 
+            pictures.img_url AS "profileImgUrl" 
+            FROM users
+            JOIN pictures ON pictures."userId"=users.id
+            WHERE users.id=$1
+            `, [visitorId])
+
+        // checar pra ver se o usuario segueu o perfil visitado
+        const followingVisitor = await db.query(`SELECT * FROM connections 
+            WHERE follow=$1 AND follower=$2
+            `, [userId, visitorId])
+
+        const response = {  
+            ...profileInfo[0],
+            posts: [...posts],
+            doiFollow: followingVisitor.rowCount
+        }
+
         res.send(response).status(200);
     } catch (err) {
         res.status(500).send(err.message)
@@ -58,26 +97,34 @@ export async function createNewPost(req, res) {
     }
 }
 
-export async function getUserData(req, res) {
-    // AINDA FALTA REDIRECIONAR O USUARIO
-    const userId = res.locals.userId
-    try {
-        const {rows: userInfo} = await db.query(`SELECT users.id, users.name, SUM(urls.views) AS "visitCount"   
-            FROM urls
-            JOIN users ON users.id=urls."userId"
-            WHERE urls."userId"=$1
-            GROUP BY users.id, users.name
 
-        `, [userId])
-        const {rows: shortUrls} = await db.query(`SELECT id, "shortUrl", name AS url, "views" AS "visitCount"
-            FROM urls WHERE urls."userId"=$1`, 
-            [userId])
+export async function createNewConnection(req, res) {
+    const {userId, followerId} = res.locals
+    try {
+        const {rows : users} = await db.query(`INSERT INTO connections (follow, follower) 
+            VALUES ($1, $2)
+        `, [userId, followerId])
         
-        const response = {...userInfo[0], shortenedUrls: shortUrls}
-        // console.log(response)
-        res.send(response).status(200);
+        // atualiza numero de seguir/seguindo em cada perfil
+        const {rows : numberFollowing} = await db.query(`SELECT following FROM users WHERE id=$1`, [userId])
+        await db.query(`UPDATE users SET following=$1 WHERE id=$2`, [numberFollowing[0].following + 1, userId])
+
+        const {rows: numberFollower} = await db.query(`SELECT followers FROM users WHERE id=$1`, [followerId])
+        await db.query(`UPDATE users SET followers=$1 WHERE id=$2`, [numberFollower[0].followers + 1, followerId])
+        console.log(numberFollower[0].followers)
+        // relaciona a imagem do post com a imagem criada em pictures
+        
+        res.send({message: "seguido com sucesso"}).status(200);
     } catch (err) {
         res.status(500).send(err.message)
     }
 }
 
+export async function getUsers(req, res, next) {
+    try {
+        const {rows: users} = await db.query(`SELECT * FROM users`)
+        res.status(200).send(users)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
