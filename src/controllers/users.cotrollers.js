@@ -82,8 +82,9 @@ export async function searchUsers(req, res) {
         const {rows: sugestions} = await db.query(`SELECT users.name, users.biography, users.id, 
             pictures.img_url AS "userImg" 
             FROM users 
-            JOIN pictures ON pictures."userId"=users.id
-            WHERE name LIKE $1;`, [`${searchUserName}%`])
+            JOIN pictures ON pictures.id=users."mainPictureId"
+            WHERE users.name LIKE $1
+        `, [`${searchUserName}%`])
         
         res.send(sugestions).status(200);
     } catch (err) {
