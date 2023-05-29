@@ -124,11 +124,42 @@ export async function createNewConnection(req, res) {
     }
 }
 
+export async function getFollowing(req, res, next) {
+    const userId = res.locals.userId
+    try {
+        const {rows: followers} = await db.query(`SELECT *
+            FROM users
+            JOIN connections ON connections.follower=users.id
+            WHERE follow=$1
+        `, [userId])
+        res.status(200).send(followers)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
+export async function getFollowers(req, res, next) {
+    const userId = res.locals.userId
+
+    try {
+        const {rows: followers} = await db.query(`SELECT *
+            FROM users
+            JOIN connections ON connections.follow=users.id
+            WHERE follower=$1
+        `, [userId])
+        res.status(200).send(followers)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+}
+
 export async function getUsers(req, res, next) {
     try {
-        const {rows: users} = await db.query(`SELECT * FROM pictures`)
+        const {rows: users} = await db.query(`SELECT * FROM users`)
         res.status(200).send(users)
     } catch (err) {
         res.status(500).send(err.message)
     }
 }
+
+
