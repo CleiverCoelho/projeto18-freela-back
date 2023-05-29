@@ -151,7 +151,7 @@ export async function getFollowing(req, res, next) {
             pictures.img_url AS "userImg", users.id
             FROM users
             JOIN connections ON connections.follower=users.id
-            JOIN pictures ON pictures."userId"=users.id
+            JOIN pictures ON pictures.id=users."mainPictureId"
             WHERE follow=$1
         `, [userId])
         res.status(200).send(followers)
@@ -168,7 +168,7 @@ export async function getFollowers(req, res, next) {
             pictures.img_url AS "userImg", users.id  
             FROM users
             JOIN connections ON connections.follow=users.id
-            JOIN pictures ON pictures."userId"=users.id
+            JOIN pictures ON pictures.id=users."mainPictureId"
             WHERE follower=$1
         `, [userId])
         res.status(200).send(followers)
