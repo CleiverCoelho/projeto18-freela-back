@@ -20,10 +20,7 @@ export async function getProfileData(req, res) {
             JOIN pictures ON pictures."userId"=users.id
             WHERE users.id=$1
             `, [userId])
-        const {rows: teste} = await db.query(`SELECT * FROM users WHERE id=$1`, [userId])
-        console.log(teste)
 
-        console.log(profileInfo)
         const response = {
             ...profileInfo[0],
             posts: [...posts]
@@ -49,7 +46,7 @@ export async function getProfileVisitorData(req, res) {
         
         const {rows: profileInfo} = await db.query(`SELECT users.name, users.followers,
             users.following, users.biography, 
-            pictures.img_url AS "profileImgUrl" 
+            pictures.img_url AS "profileImgUrl", users.id 
             FROM users
             JOIN pictures ON pictures."userId"=users.id
             WHERE users.id=$1
