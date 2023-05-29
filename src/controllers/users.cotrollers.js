@@ -127,9 +127,11 @@ export async function createNewConnection(req, res) {
 export async function getFollowing(req, res, next) {
     const userId = res.locals.userId
     try {
-        const {rows: followers} = await db.query(`SELECT *
+        const {rows: followers} = await db.query(`SELECT users.biography, users.name,
+            pictures.img_url AS "userImg", users.id
             FROM users
             JOIN connections ON connections.follower=users.id
+            JOIN pictures ON pictures."userId"=users.id
             WHERE follow=$1
         `, [userId])
         res.status(200).send(followers)
@@ -142,9 +144,11 @@ export async function getFollowers(req, res, next) {
     const userId = res.locals.userId
 
     try {
-        const {rows: followers} = await db.query(`SELECT *
+        const {rows: followers} = await db.query(`SELECT users.biography, users.name,
+            pictures.img_url AS "userImg", users.id  
             FROM users
             JOIN connections ON connections.follow=users.id
+            JOIN pictures ON pictures."userId"=users.id
             WHERE follower=$1
         `, [userId])
         res.status(200).send(followers)
